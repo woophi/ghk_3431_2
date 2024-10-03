@@ -19,18 +19,11 @@ export const App = () => {
   const [checked3, setChecked3] = useState(true);
   const [loading, setLoading] = useState(false);
   const [moreInfo, setMoreInfo] = useState(false);
-  const [err, setError] = useState('');
   const [thxShow, setThx] = useState(LS.getItem(LSKeys.ShowThx, false));
-  const [accountNumber, setAccountNumber] = useState('');
   const [limit, setLimit] = useState<number | undefined>(undefined);
 
-  const [email, setEmail] = useState('');
-
   const submit = useCallback(() => {
-    if (!accountNumber) {
-      setError('Укажите номер лицевого счёта');
-      return;
-    }
+    window.gtag('event', '3431_create_template_v2');
     setLoading(true);
 
     sendDataToGA({
@@ -38,40 +31,33 @@ export const App = () => {
       limit: Number(checked2) as 1 | 0,
       limit_sum: limit ?? 0,
       insurance: Number(checked3) as 1 | 0,
-      email: email ? 1 : 0,
     }).then(() => {
       LS.setItem(LSKeys.ShowThx, true);
       setThx(true);
       setLoading(false);
     });
-  }, [accountNumber, checked, checked2, checked3, email, limit]);
+  }, [checked, checked2, checked3, limit]);
 
   if (thxShow) {
     return <ThxLayout />;
   }
 
   if (moreInfo) {
-    return <MoreInfoLayout email={email} setEmail={setEmail} goBack={() => setMoreInfo(false)} />;
+    return (
+      <MoreInfoLayout
+        goBack={() => {
+          window.gtag('event', '3431_back_to_settings_v2');
+          setMoreInfo(false);
+        }}
+      />
+    );
   }
 
   return (
     <>
       <div className={appSt.container}>
         <Typography.TitleResponsive style={{ marginTop: '1rem' }} tag="h1" view="small" font="system" weight="semibold">
-          Оплата ЖКУ
-        </Typography.TitleResponsive>
-        <Input
-          block
-          label="Номер лицевого счёта"
-          labelView="outer"
-          placeholder="1234567890"
-          size={48}
-          hint="Номер ЛС или ФЛС можно найти на квитанции"
-          value={accountNumber}
-          onChange={(_, { value }) => setAccountNumber(value)}
-        />
-        <Typography.TitleResponsive style={{ marginTop: '1rem' }} tag="h2" view="small" font="system" weight="semibold">
-          Настройка автооплаты
+          Настройка автооплаты ЖКУ
         </Typography.TitleResponsive>
 
         <Switch
@@ -121,7 +107,13 @@ export const App = () => {
             Защитим домашнее имущество, внутреннюю отделку, включая трубы и электрику. Возместим ущерб соседям.
           </Typography.Text>
           <Divider />
-          <div className={appSt.row} onClick={() => setMoreInfo(true)}>
+          <div
+            className={appSt.row}
+            onClick={() => {
+              window.gtag('event', '3431_more_info_v2');
+              setMoreInfo(true);
+            }}
+          >
             <Typography.Text view="primary-medium" weight="medium">
               Узнать подробнее
             </Typography.Text>
@@ -129,13 +121,13 @@ export const App = () => {
           </div>
         </div>
         <Typography.Text view="primary-small" color="secondary">
-          Ежемесячный платёж за страхование имущества 200 ₽ будет добавлен к платежу за ЖКУ
+          Ежемесячный платёж за страхование имущества 200&nbsp;₽ будет добавлен к платежу за ЖКУ
         </Typography.Text>
       </div>
       <Gap size={96} />
 
       <div className={appSt.bottomBtn}>
-        <ButtonMobile loading={loading} block view="primary" onClick={submit} hint={err}>
+        <ButtonMobile loading={loading} block view="primary" onClick={submit}>
           Создать шаблон оплаты
         </ButtonMobile>
       </div>
